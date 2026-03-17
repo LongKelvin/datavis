@@ -1,65 +1,133 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState, useCallback } from 'react';
+import { ReactFlowProvider } from '@xyflow/react';
+import { useAppStore } from '@/store';
+import { Toolbar } from '@/components/toolbar/Toolbar';
+import { EditorPanel } from '@/components/editor/EditorPanel';
+import { GraphCanvas } from '@/components/graph/GraphCanvas';
+import { TreeView } from '@/components/graph/TreeView';
+import { CodeGenModal } from '@/components/modals/CodeGenModal';
+import { ConvertModal } from '@/components/modals/ConvertModal';
+import { QueryDrawer } from '@/components/drawers/QueryDrawer';
+import { decodeFromUrl } from '@/lib/url';
+import { MAX_NODE_COUNT } from '@/lib/parsers/buildAST';
+
+export default function HomePage() {
+  const setInput = useAppStore(s => s.setInput);
+  const viewMode = useAppStore(s => s.viewMode);
+  const theme = useAppStore(s => s.theme);
+  const nodes = useAppStore(s => s.nodes);
+  const parseError = useAppStore(s => s.parseError);
+  const isLoading = useAppStore(s => s.isLoading);
+  const isTruncated = useAppStore(s => s.isTruncated);
+  const totalNodeCount = useAppStore(s => s.totalNodeCount);
+
+  const [codeGenOpen, setCodeGenOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [queryOpen, setQueryOpen] = useState(false);
+
+  // Load from URL hash on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      try {
+        const data = decodeFromUrl(window.location.hash);
+        if (data) setInput(data);
+      } catch {
+        // ignore invalid hash
+      }
+    }
+  }, [setInput]);
+
+  // Initial parse on mount
+  useEffect(() => {
+    const { inputText } = useAppStore.getState();
+    if (inputText && nodes.length === 0) {
+      setInput(inputText);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Apply theme class
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else if (theme === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    } else {
+      root.classList.remove('dark', 'light');
+    }
+  }, [theme]);
+
+  // Keyboard shortcuts
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setCodeGenOpen(false);
+      setConvertOpen(false);
+      setQueryOpen(false);
+    }
+    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+      e.preventDefault();
+      setCodeGenOpen(true);
+    }
+    if (e.ctrlKey && e.key === '\\') {
+      e.preventDefault();
+      useAppStore.getState().toggleEditor();
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <ReactFlowProvider>
+      <div className="app-container">
+        <Toolbar />
+
+        {/* Tools bar */}
+        <div className="tools-bar">
+          <button className="tools-btn" onClick={() => setCodeGenOpen(true)}>
+            {'</>'}  Code Gen
+          </button>
+          <button className="tools-btn" onClick={() => setConvertOpen(true)}>
+            🔄 Convert
+          </button>
+          <button className="tools-btn" onClick={() => setQueryOpen(!queryOpen)}>
+            🔎 Query
+          </button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="main-content">
+          <EditorPanel />
+          <div className="graph-panel">
+            {viewMode === 'graph' ? <GraphCanvas /> : <TreeView />}
+          </div>
         </div>
-      </main>
-    </div>
+
+        {/* Truncation banner */}
+        {isTruncated && (
+          <div className="truncation-banner">
+            ⚠ Large data: showing first {totalNodeCount} nodes (capped at {MAX_NODE_COUNT}). The structure is preserved — collapse parent nodes to explore deeper.
+          </div>
+        )}
+
+        {/* Status bar */}
+        <div className="status-bar">
+          <span>{isLoading ? '⏳ Parsing…' : `Nodes: ${nodes.length}`}</span>
+          {parseError && (
+            <span className="status-error">⚠ Parse error</span>
+          )}
+        </div>
+
+        {/* Modals */}
+        <CodeGenModal open={codeGenOpen} onClose={() => setCodeGenOpen(false)} />
+        <ConvertModal open={convertOpen} onClose={() => setConvertOpen(false)} />
+        <QueryDrawer open={queryOpen} onClose={() => setQueryOpen(false)} />
+      </div>
+    </ReactFlowProvider>
   );
 }
