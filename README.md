@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DataVis
+
+A privacy-first, browser-based tool that transforms structured data into interactive graph visualizations. Paste JSON, YAML, XML, CSV, or TOML and instantly explore the structure as a zoomable, pannable node graph or collapsible tree — no server, no uploads, everything runs in your browser.
+
+## Features
+
+- **5 input formats** — JSON, YAML, XML, CSV, TOML with auto-detection on paste
+- **Graph & Tree views** — hierarchical node graph (dagre layout) or collapsible tree inspector
+- **Monaco editor** — syntax highlighting, live validation, 300 ms debounced parse
+- **Large-file safe** — iterative AST builder (no stack overflow), 5 000-node display cap, adaptive debounce, Monaco degrades gracefully beyond 200 KB
+- **Node search** — highlight matching nodes; non-matching nodes fade
+- **Collapse / expand** — click any parent node to hide its subtree
+- **Code generation** — TypeScript interfaces, Go structs, Rust serde structs, Python Pydantic models, JSON Schema
+- **Format conversion** — JSON ↔ YAML ↔ XML ↔ CSV via a modal editor
+- **JSONPath query** — run `$.store.inventory[*].name` style queries and see results inline
+- **Export** — PNG (2× DPI), JPEG, SVG, or a compressed share URL (no server)
+- **Dark / light / system theme**
+- **Embed route** — `/embed` for `<iframe>` usage with URL-encoded data
+- **Zero data egress** — everything is local; the `#fragment` in share URLs is never sent to the server
+
+## Tech Stack
+
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript (strict) |
+| Graph renderer | @xyflow/react |
+| Layout | dagre |
+| Editor | @monaco-editor/react |
+| State | Zustand |
+| Parsers | js-yaml · fast-xml-parser · papaparse |
+| Compression | pako |
+| Export | html-to-image |
+| Query | jsonpath-plus |
+| Styling | Tailwind CSS v4 |
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/            # Next.js App Router pages & global CSS
+├── components/     # UI components (editor, graph, toolbar, modals, drawers)
+├── hooks/          # useIsDark (SSR-safe theme hook)
+├── lib/
+│   ├── parsers/    # buildAST + JSON/YAML/XML/CSV/TOML parsers
+│   ├── graph/      # buildGraph, dagre layout, node search
+│   ├── codegen/    # TypeScript / Go / Rust / Python / JSON Schema generators
+│   ├── export/     # PNG/JPEG/SVG export helpers
+│   ├── query/      # JSONPath runner
+│   └── url.ts      # pako share-URL encode/decode
+├── store/          # Zustand store (parse loop, layout, search)
+└── types/          # Shared TypeScript types
+```
