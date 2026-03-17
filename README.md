@@ -1,69 +1,190 @@
 # DataVis
 
-A privacy-first, browser-based tool that transforms structured data into interactive graph visualizations. Paste JSON, YAML, XML, CSV, or TOML and instantly explore the structure as a zoomable, pannable node graph or collapsible tree — no server, no uploads, everything runs in your browser.
+**Live Demo:** https://datavis-r5fn1mkd6-kelvin-projects.vercel.app/
+
+---
+
+## Overview
+
+DataVis is a privacy-first, browser-based visualization tool designed to transform structured data into interactive graph representations.
+
+It supports multiple input formats and allows users to explore data structures visually using either a graph view or a tree view — all processed entirely in the browser with zero server interaction.
+
+---
+
+## Key Highlights
+
+- No backend processing — all data stays local
+- Instant parsing and visualization
+- Supports multiple data formats
+- Developer-friendly features like code generation and querying
+- Designed to handle large datasets safely
+
+---
 
 ## Features
 
-- **5 input formats** — JSON, YAML, XML, CSV, TOML with auto-detection on paste
-- **Graph & Tree views** — hierarchical node graph (dagre layout) or collapsible tree inspector
-- **Monaco editor** — syntax highlighting, live validation, 300 ms debounced parse
-- **Large-file safe** — iterative AST builder (no stack overflow), 5 000-node display cap, adaptive debounce, Monaco degrades gracefully beyond 200 KB
-- **Node search** — highlight matching nodes; non-matching nodes fade
-- **Collapse / expand** — click any parent node to hide its subtree
-- **Code generation** — TypeScript interfaces, Go structs, Rust serde structs, Python Pydantic models, JSON Schema
-- **Format conversion** — JSON ↔ YAML ↔ XML ↔ CSV via a modal editor
-- **JSONPath query** — run `$.store.inventory[*].name` style queries and see results inline
-- **Export** — PNG (2× DPI), JPEG, SVG, or a compressed share URL (no server)
-- **Dark / light / system theme**
-- **Embed route** — `/embed` for `<iframe>` usage with URL-encoded data
-- **Zero data egress** — everything is local; the `#fragment` in share URLs is never sent to the server
+### Multi-format Input
+Supports automatic detection and parsing of:
+- JSON
+- YAML
+- XML
+- CSV
+- TOML
+
+### Visualization Modes
+- **Graph View** — Interactive node graph using Dagre layout
+- **Tree View** — Collapsible hierarchical structure
+
+### Editor Experience
+- Monaco Editor integration
+- Syntax highlighting
+- Real-time validation
+- 300ms debounced parsing
+
+### Performance Optimization
+- Iterative AST builder (prevents stack overflow)
+- Maximum 5,000 nodes rendered
+- Adaptive debounce for large inputs
+- Graceful degradation for files >200KB
+
+### Data Exploration
+- Node search with highlight/fade behavior
+- Expand/collapse node subtrees
+
+### Code Generation
+Generate models from data:
+- TypeScript interfaces
+- Go structs
+- Rust (Serde)
+- Python (Pydantic)
+- JSON Schema
+
+### Data Transformation
+Convert between formats:
+- JSON ↔ YAML ↔ XML ↔ CSV
+
+### Query Support
+- JSONPath queries (e.g. `$.store.inventory[*].name`)
+- Inline result visualization
+
+### Export Options
+- PNG (2x DPI)
+- JPEG
+- SVG
+- Shareable compressed URL (no backend)
+
+### UI/UX
+- Dark / Light / System themes
+- Fully client-side rendering
+
+### Embedding
+- `/embed` route for iframe usage
+- URL-encoded data support
+
+### Privacy
+- Zero data egress
+- Uses URL hash (`#fragment`) for sharing — never sent to server
+
+---
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
+| Layer | Technology |
+|------|-----------|
 | Framework | Next.js 16 (App Router) |
-| Language | TypeScript (strict) |
-| Graph renderer | @xyflow/react |
-| Layout | dagre |
-| Editor | @monaco-editor/react |
-| State | Zustand |
-| Parsers | js-yaml · fast-xml-parser · papaparse |
+| Language | TypeScript (strict mode) |
+| Graph Rendering | @xyflow/react |
+| Layout Engine | dagre |
+| Editor | Monaco Editor |
+| State Management | Zustand |
+| Parsing | js-yaml, fast-xml-parser, papaparse |
 | Compression | pako |
 | Export | html-to-image |
-| Query | jsonpath-plus |
+| Query Engine | jsonpath-plus |
 | Styling | Tailwind CSS v4 |
+
+---
 
 ## Getting Started
 
+### Install Dependencies
+
 ```bash
 npm install
+```
+
+### Run Development Server
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open in browser:
+http://localhost:3000
 
-## Build
+---
+
+## Production Build
 
 ```bash
 npm run build
 npm start
 ```
 
+---
+
 ## Project Structure
 
 ```
 src/
-├── app/            # Next.js App Router pages & global CSS
-├── components/     # UI components (editor, graph, toolbar, modals, drawers)
-├── hooks/          # useIsDark (SSR-safe theme hook)
+├── app/            # Next.js App Router + global styles
+├── components/     # UI components (editor, graph, toolbar, modals)
+├── hooks/          # Custom hooks (e.g. theme handling)
 ├── lib/
-│   ├── parsers/    # buildAST + JSON/YAML/XML/CSV/TOML parsers
-│   ├── graph/      # buildGraph, dagre layout, node search
-│   ├── codegen/    # TypeScript / Go / Rust / Python / JSON Schema generators
-│   ├── export/     # PNG/JPEG/SVG export helpers
-│   ├── query/      # JSONPath runner
-│   └── url.ts      # pako share-URL encode/decode
-├── store/          # Zustand store (parse loop, layout, search)
+│   ├── parsers/    # AST builder + format parsers
+│   ├── graph/      # Graph builder + layout logic
+│   ├── codegen/    # Code generators
+│   ├── export/     # Export utilities
+│   ├── query/      # JSONPath engine
+│   └── url.ts      # Share URL compression
+├── store/          # Zustand state management
 └── types/          # Shared TypeScript types
 ```
+
+---
+
+## Use Cases
+
+- Debugging complex JSON structures
+- Visualizing API responses
+- Generating type-safe models
+- Learning data structures interactively
+- Sharing structured data visually without exposing raw files
+
+---
+
+## Notes & Recommendations
+
+- For very large datasets, consider pre-filtering input before visualization
+- Graph view can become dense — switch to tree view for deep structures
+- JSONPath queries are powerful but can be expensive on large datasets
+
+---
+
+## Future Improvements (Suggestions)
+
+- Virtualized graph rendering for >10k nodes
+- Plugin system for custom parsers/codegen
+- Save/load workspace state locally
+- Diff mode (compare two JSON structures)
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+**Copyright (c) 2026 Kelvin Long**
+
+You are free to use, modify, and distribute this software under the MIT license terms.
